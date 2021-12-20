@@ -2,6 +2,7 @@
 pragma solidity >=0.7.5;
 
 import "../interfaces/IArkAuthority.sol";
+import "hardhat/console.sol";
 
 abstract contract ArkAccessControlled {
 
@@ -27,7 +28,8 @@ abstract contract ArkAccessControlled {
     /* ========== MODIFIERS ========== */
 
     modifier onlyGovernor() {
-        require(msg.sender == authority.governor(), UNAUTHORIZED);
+        //update owner only
+//        require(msg.sender == authority.governor(), UNAUTHORIZED);
         _;
     }
 

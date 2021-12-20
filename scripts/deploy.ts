@@ -23,15 +23,17 @@ async function main() {
   //- staking
 
   const DAI = await ethers.getContractFactory('DAI');
-  const dai = await DAI.deploy();
+  const dai = await DAI.deploy(31337);
   await dai.deployed();
-  console.log('mock DAI deployed to: ' + dai.address);
+  console.log('Mock DAI deployed to: ' + dai.address);
 
-  const ARK = await ethers.getContractFactory('ArkERC20');
-  const ark = await ARK.deploy();
+  const ARK = await ethers.getContractFactory('ArkERC20Token');
+  const ark = await ARK.deploy(deployer.address);
+  console.log('ArkERC20Token deployed to: ' + ark.address);
 
   const ArkTreasury = await ethers.getContractFactory('ArkTreasury');
-  const arkTreasury = await ArkTreasury.deploy(ark.address, '0');
+  const arkTreasury = await ArkTreasury.deploy(ark.address, '0',  deployer.address);
+  console.log('ArkTreasury deployed to: ' + arkTreasury.address);
 
   await arkTreasury.queueTimelock('0', deployer.address, deployer.address);
   await arkTreasury.queueTimelock('8', deployer.address, deployer.address);
