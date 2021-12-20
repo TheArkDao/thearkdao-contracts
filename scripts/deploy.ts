@@ -13,13 +13,31 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const [deployer] = await ethers.getSigners();
+  console.log('Deploying contracts with the account: ' + deployer.address);
+  //deploy sequence
+  //- mock dai
+  //- Ark token
+  //- treasury
+  //- bonds
+  //- staking
 
-  await greeter.deployed();
+  const DAI = await ethers.getContractFactory('DAI');
+  const dai = await DAI.deploy();
+  await dai.deployed();
+  console.log('mock DAI deployed to: ' + dai.address);
 
-  console.log("Greeter deployed to:", greeter.address);
+  const ARK = await ethers.getContractFactory('ArkERC20');
+  const ark = await ARK.deploy();
+
+  const ArkTreasury = await ethers.getContractFactory('ArkTreasury');
+  const arkTreasury = await ArkTreasury.deploy(ark.address, '0');
+
+  await arkTreasury.queueTimelock('0', deployer.address, deployer.address);
+  await arkTreasury.queueTimelock('8', deployer.address, deployer.address);
+  await arkTreasury.queueTimelock('2', DAI, DAI);
+
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
