@@ -19,8 +19,11 @@ async function main() {
   //- mock dai
   //- Ark token
   //- treasury
-  //- bonds
+  //- sArk
   //- staking
+  //- redeem helper
+  //- distributor
+  //- bonds depos
 
   const DAI = await ethers.getContractFactory('DAI');
   const dai = await DAI.deploy(31337);
@@ -31,14 +34,41 @@ async function main() {
   const ark = await ARK.deploy(deployer.address);
   console.log('ArkERC20Token deployed to: ' + ark.address);
 
+  const Calculator = await ethers.getContractFactory('ArkBondingCalculator');
+  const calculator = await Calculator.deploy(deployer.address);
+  console.log('Calculator deployed to: ' + calculator.address);
+
   const ArkTreasury = await ethers.getContractFactory('ArkTreasury');
-  const arkTreasury = await ArkTreasury.deploy(ark.address, '0',  deployer.address);
+  const arkTreasury = await ArkTreasury.deploy(ark.address, dai.address, deployer.address, 0);
   console.log('ArkTreasury deployed to: ' + arkTreasury.address);
 
-  await arkTreasury.queueTimelock('0', deployer.address, deployer.address);
-  await arkTreasury.queueTimelock('8', deployer.address, deployer.address);
-  await arkTreasury.queueTimelock('2', DAI, DAI);
+  const sARK = await ethers.getContractFactory('sArk');
+  const sark = await sARK.deploy();
+  console.log('sArk deployed to: ' + sark.address);
 
+  const epochLength = '2200'; // >8 hours
+  const firstEpochNumber = '1';
+  const firstEpochBlock = '1';
+
+  const ArkStaking = await ethers.getContractFactory('ArkStaking');
+  const arkStaking = await ArkStaking.deploy(deployer.address, sark.address, epochLength, firstEpochNumber, firstEpochBlock);
+  console.log('ArkStaking deployed to: ' + arkStaking.address);
+
+  const StakingHelper = await ethers.getContractFactory('StakingHelper');
+  const stakingHelper = await StakingHelper.deploy(arkStaking.address, ark.address);
+  console.log('StakingHelper deployed to: ' + stakingHelper.address);
+
+  const StakingWarmup = await ethers.getContractFactory('StakingWarmup');
+  const stakingWarmup = await StakingWarmup.deploy(arkStaking.address, sark.address);
+  console.log('StakingWarmup deployed to: ' + stakingWarmup.address);
+
+  const RedeemHelper = await ethers.getContractFactory('RedeemHelper');
+  const redeemHelper = await RedeemHelper.deploy();
+  console.log('RedeemHelper deployed to: ' + redeemHelper.address);
+
+  const Distributor = await ethers.getContractFactory('Distributor');
+  const distributor = await Distributor.deploy(deployer.address, arkTreasury.address, epochLength, firstEpochBlock);
+  console.log('Distributor deployed to: ' + distributor.address);
 
 }
 
